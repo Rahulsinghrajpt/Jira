@@ -1,1 +1,19 @@
 
+Machine Learning Tools:
+1.SageMaker - Model training, deployment, and monitoring
+2.Scikit-learn - Traditional ML algorithms
+3.TensorFlow/PyTorch - Deep learning frameworks
+4.XGBoost - Gradient boosting for predictive modeling
+5.Great Expectations - Data validation for ML pipelines
+
+
+Data Engineering Tools:
+1.AWS S3 - Data storage (raw and processed data)
+2.DynamoDB - Pipeline metadata storage (pipeline_info table)
+3.Redshift/Athena - Data warehousing and querying
+4.AWS Lambda - Serverless data processing
+5.boto3 - Python SDK for AWS services
+6.pandas - Data manipulation and transformation
+7.PyArrow - Parquet file handling
+8.Airflow/Step Functions - Workflow orchestration
+9.EventBridge - Triggering ingestion pipeline on S3 events
