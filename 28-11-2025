@@ -17,3 +17,10 @@ Data Engineering Tools:
 7.PyArrow - Parquet file handling
 8.Airflow/Step Functions - Workflow orchestration
 9.EventBridge - Triggering ingestion pipeline on S3 events
+
+
+Here is a clean 3–4 line timesheet summary:
+
+I completed the Python helper library for the `pipeline_info` table, including 14 functions to manage training schedules, performance metrics, and pipeline updates.
+This library will be used across all pipelines and took more time than expected due to detailed logic.
+I am writing unit tests to ensure everything works correctly. We are on track to finish the remaining work by tomorrow or latest by Friday.
