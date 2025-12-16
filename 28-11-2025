@@ -1,26 +1,37 @@
+8.
+ I have completed all the tasks under Epic ME-4067 and successfully deployed the data ingestion pipeline infrastructure. The ticket ME-4074 is on hold since Seyed mentioned it’s a low-priority item.
 
-Machine Learning Tools:
-1.SageMaker - Model training, deployment, and monitoring
-2.Scikit-learn - Traditional ML algorithms
-3.TensorFlow/PyTorch - Deep learning frameworks
-4.XGBoost - Gradient boosting for predictive modeling
-5.Great Expectations - Data validation for ML pipelines
+9.
+Today I fixed the data integrity bug which Seyed Sir pointed out and re verified the data processing logic so that irrespective of the source file name, the destination paths have correct semantics, which are pulled from the pipeline-info table.
 
+I will document requirements for ME-4278 today and will start working on it. For integration tests, if I can get a source of truth for the expectations of the prediction and training pipelines, then it will be  very helpful.
 
-Data Engineering Tools:
-1.AWS S3 - Data storage (raw and processed data)
-2.DynamoDB - Pipeline metadata storage (pipeline_info table)
-3.Redshift/Athena - Data warehousing and querying
-4.AWS Lambda - Serverless data processing
-5.boto3 - Python SDK for AWS services
-6.pandas - Data manipulation and transformation
-7.PyArrow - Parquet file handling
-8.Airflow/Step Functions - Workflow orchestration
-9.EventBridge - Triggering ingestion pipeline on S3 events
+As we will have more files in source, I will test more and we will be able to identify more edge cases and I will make the ingestion robust.
 
 
-Here is a clean 3–4 line timesheet summary:
+10.
+I have implemented the logic to standardize sales column in destination vip buckets and instead of looking for month and date folders inside tracer/ folder, it is looking in tracer/ folder for files to ingest.
 
-I completed the Python helper library for the `pipeline_info` table, including 14 functions to manage training schedules, performance metrics, and pipeline updates.
-This library will be used across all pipelines and took more time than expected due to detailed logic.
-I am writing unit tests to ensure everything works correctly. We are on track to finish the remaining work by tomorrow or latest by Friday.
+I have also removed the logic which was rejecting files if they were small in size, now it only checks if the file is empty or not.
+
+File selection logic for ingestion needs more refactoring and I was thinking that irrespective of the number of files for same Client+Brand+Retailer, the ingestion logic should not pick random files. For this, I am thinking to add some file tracking fields to pipeline-info table, I need to do more research on this.
+
+11.
+The unit tests are passing and we have the exact schema that the training and prediction pipelines expect.
+
+The logging, monitoring and alerting setup is approx 70% complete and I will work on slack integration today and will complete by tomorrow.
+
+Also, the staging and production pipelines will be deployed today and tomorrow.
+
+The tasks are on track and will be complete in this sprint.
+
+12.
+Ticket : ME-4278   The integration tests are passing, and we have the exact schema that the training and prediction pipelines expect.
+
+ME- 4279,4281  The staging and production pipelines have been deployed.
+
+ME- 4280  I am currently working on the Slack integration, and it will be completed today
+
+15 dec
+
+As per the latest update, I am currently working on the Slack integration and aiming to complete it today. I need a few clarifications related to the integration. Additionally, I have removed the redundant columns from the data transfer log and retained only the job status column.
