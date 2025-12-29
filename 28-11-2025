@@ -1,37 +1,76 @@
-8.
- I have completed all the tasks under Epic ME-4067 and successfully deployed the data ingestion pipeline infrastructure. The ticket ME-4074 is on hold since Seyed mentioned it’s a low-priority item.
+
+1.completed ME-4076 and raised the PR. I discussed the centralized state management approach with Sayeed, and I will prepare the architecture diagram once I get the access. I have also shared the details about the duplication in the codebase.
+And I am going to start on ticket ME-4068.
+
+2.Worked on ticket ME_4068. Reviewed the requirements and started development. Currently working on the Python helper library for the pipeline_info table, implementing 14 functions to manage training schedules, performance metrics, and pipeline updates.
+3.ME-4068:-
+I completed the Python helper library for the `pipeline_info`table, including 14 functions to manage training schedules, performance metrics, and pipeline updates.
+I am writing unit tests to ensure everything works correctly. 
+
+4.
+I finished unit testing, integration testing, data population, and end-to-end validation for the pipeline_info table. I wrote 35+ tests with 85% code coverage, created a script to load all 12 beta customer records into the table, and validated on my local machine, and pushed the code. And now I will be planning on how to deploy the infrastructure while making sure that there are no redundancies or breaking changes. I will review the Terraform config in the repo and will restructure if needed. We are now 80% done with the entire implementation of this epic.
+
+5.I have completed the task under Epic ME-4067 and successfully deployed the data ingestion pipeline infrastructure. The ticket ME-4074 is on hold since Seyed mentioned it's a low-priority item.
+
+8.Started working on integration tests for the prediction and training pipelines. Prepared a few requirement-related questions to discuss today. Additionally, implementing a minor change suggested by Seyed in the data transfer Lambda, which will be completed today.
 
 9.
-Today I fixed the data integrity bug which Seyed Sir pointed out and re verified the data processing logic so that irrespective of the source file name, the destination paths have correct semantics, which are pulled from the pipeline-info table.
+Yesterday, during the meeting a couple of actions items were decided like, cleaning up the S3 and processing some column name, I will work on that today
 
-I will document requirements for ME-4278 today and will start working on it. For integration tests, if I can get a source of truth for the expectations of the prediction and training pipelines, then it will be  very helpful.
+Then I will verify the logging in the data ingestion pipeline and will modify the logic of file discovery.
 
-As we will have more files in source, I will test more and we will be able to identify more edge cases and I will make the ingestion robust.
+Apart from that, I will work on designing the integration tests with prediction and integration pipelines, for that I will take requirements from Aditya and Seyed
 
+10.I have cleaned up the source S3 bucket but it is being synced from a source so the cleanup is not useful.
 
-10.
-I have implemented the logic to standardize sales column in destination vip buckets and instead of looking for month and date folders inside tracer/ folder, it is looking in tracer/ folder for files to ingest.
+I have fixed a couple of bugs related to the file search logic, and now it is working as expected
 
-I have also removed the logic which was rejecting files if they were small in size, now it only checks if the file is empty or not.
+Apart from this logging and monitoring dashboards are setup and working as expected, will optimize them.
 
-File selection logic for ingestion needs more refactoring and I was thinking that irrespective of the number of files for same Client+Brand+Retailer, the ingestion logic should not pick random files. For this, I am thinking to add some file tracking fields to pipeline-info table, I need to do more research on this.
+I have a sample file which prediction and training pipelines expect and will align the data ingestion pipeline.
 
-11.
-The unit tests are passing and we have the exact schema that the training and prediction pipelines expect.
+11.1. The unit tests are passing, and we have the exact schema that the training and prediction pipelines expect.
+2. The logging, monitoring, and alerting setup is approximately 70% complete, and I will work on Slack integration today.
+3. Also, the staging and production pipelines will be deployed today and tomorrow.
 
-The logging, monitoring and alerting setup is approx 70% complete and I will work on slack integration today and will complete by tomorrow.
+12.ME-4278 The integration tests are passing, and we have the exact schema that the training and prediction pipelines expect and these are in review. ME- 4279,4281 The staging and production pipelines have been deployed. ME- 4280 I am currently working on the Slack integration.
 
-Also, the staging and production pipelines will be deployed today and tomorrow.
+15.Update:
 
-The tasks are on track and will be complete in this sprint.
+Currently working on the Slack integration and seeking clarifications related to it.
+Removed redundant columns from the data transfer log, retaining only the job status column.
 
-12.
-Ticket : ME-4278   The integration tests are passing, and we have the exact schema that the training and prediction pipelines expect.
+16.Update:
 
-ME- 4279,4281  The staging and production pipelines have been deployed.
+Working on ticket ME-4280 but awaiting requirements due to lack of access to the Lambda function used by CloudOps for Slack notifications.
+Will reach out to Alex to obtain the necessary access for the current account
 
-ME- 4280  I am currently working on the Slack integration, and it will be completed today
+17.Update:
 
-15 dec
+Completed ticket ME-4280, including required testing and validation (in progress).
+Updated the Notion document with the log structure and sample.
+Assigned a new task by Seyed to create observability and monitoring for prediction pipelines.
 
-As per the latest update, I am currently working on the Slack integration and aiming to complete it today. I need a few clarifications related to the integration. Additionally, I have removed the redundant columns from the data transfer log and retained only the job status column.
+18.Update:
+
+I have completed ticket ME-4280 for Slack alert integration and all my assigned tickets. Currently, I am working on observability and monitoring for prediction pipelines.
+
+19.Updates:
+
+I have completed all my tickets.
+The data ingestion pipelines have been deployed to both staging and production environments.
+The failure Slack alert setup is also complete
+
+22update:
+Optimized the data ingestion code, pushed the changes, and raised a PR. Started working on ticket ME-4535 for the demo client data pipeline integration test.
+
+23
+Update:
+
+Working on ME-4345, which is Develop mini pipeline for client metadata ingestion
+
+24.Update:
+I am currently working on ticket ME-4535, which involves the demo client data pipeline integration test. 
+
+25.
+
