@@ -463,3 +463,9 @@ Languages
 JavaScript
 100.0%
 Footer
+
+
+
+
+
+Hi @Will Fowler, I raised a PR, and all the checks are passing except for one. That check is to see if the Jira ticket number is there in the commit message or not.There are three commits which were accidentally done via cursor, and they do not have the Jira ticket ID. It is causing the PR to fail. Can you please recommend how to move forward? I mean, is there an option to temporarily bypass this check?
