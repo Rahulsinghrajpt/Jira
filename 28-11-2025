@@ -1,1 +1,465 @@
-Worked on the ME-4535 Demo Client Data Pipeline Integration Test. Discussed demo client naming conventions with Ravi Pujari and awaited confirmation to proceed. Connected with Manish regarding client metadata, reviewed the temporary table setup, and discussed whether to begin testing with the temporary table or wait for the final metadata deployment. Created a demo client entry in the pipeline infos table.
+This Repository
+This section gives details on what this repository contains, and how to develop in this repository.
+
+Repository Content
+This repository contains tools which help implement our standard release process. These come in a few types:
+
+Rulesets
+Located in the /rulesets directory, these are GitHub Rulesets files which can be imported to Swaven organization repositories.
+
+Workflows
+Located in the /.github/workflows directory, these are GitHub Workflow files which come in two types: reusables and examples. The files in these groups have names prefixed with reusable_ and example_, respectively.
+
+There are other files in this directory, but they relate specifically to the CI/CD process for this repository.
+
+Reusable Workflows
+Reusable workflows are intended to be called as-is by workflows set up in other repositories, such as the example workflows, and are building blocks of the standard release process. They implement as much of the standard release process as possible/practical, so MikMak repositories implementing the standard release process can automatically receive most updates to the release process without having to do anything.
+
+Example Workflows
+The example workflows are intended to be copied to a downstream repository implementing the standard release process, and also happen to apply to this repository. These are intended to be as lightweight and unchanging as possible, mostly just referencing reusable workflows.
+
+These are necessary to invoke the reusable workflows in response to events on each specific repository. The reusable workflows cannot be maintained in this central repository, and also react to events in separate repositories. So, the example workflows in many cases are just a minimal 'hook' that has to be installed on each repository. The only exception is the deployment example, which is intended to be directly customized to fit the specific needs of each repository.
+
+Actions
+Located in the /actions directory, these are custom GitHub Actions which can be used by Swaven repositories. They are called by the standard workflows.
+
+Contributing
+This repository follows MikMak's standard release process (TODO add link). There is one exeption you must follow, before pushing your feature branch out for review: run the following command
+
+npm run all
+This command will:
+
+Auto-format code, config, and markdown files
+Run the linter, as it will be run against PRs
+Package the Github Actions with their dependencies for distribution.
+If you make changes and skip this step, then your PR may be rejected, and more importantly, any changes to the custom GitHub Actions will not be published!
+
+Package Upgrades from Dependabot
+This repository uses Dependabot to automatically submit pull requests with NPM package updates on minor and patch versions. These pull requests are submitted not following the standard release process, and so there's some extra manual effort involved to incorporate these upgrades, unless we add more systems to do so automatically.
+
+If you notice Dependabot has submitted package updates in a PR to this repository, complete the following steps to incorporate the changes:
+
+Create a Jira ticket for the upgrade
+Comment on the PR from Dependabot with the ticket link and close it, leaving its branch up for now
+Create a feature branch for your ticket
+Squash-merge Dependabot's branch into your feature branch using git merge --squash {DEPENDABOT-BRANCH}
+Pull down package upgrades using npm ci
+Publish any relevant package upgrades to the actions by running npm run all as described in Contributing
+Commit your changes
+Follow the rest of the release process as normal
+Delete Dependabot's branch
+Testing
+We maintain a set of test repositories which can be used to test most changes to the release automation hosted by this repository, before they reach main, at which point they would apply to all consuming repositories.
+
+The only type of changes which cannot be tested before they reach main are new reusable workflows, and new actions, because the consuming workflows must reference their variants on the main branch. This does not matter if they are used directly by the example workflows ('top-level' actions or reusable workflows), because those must be updated separately in consuming repositories; this is only a problem when the new action or reusable workflow is itself used by a top-level reusable workflow, since those updates propagate automatically. If you need to add a new reusable workflow or action which is used by a top-level reusable workflow, you should first merge it to main without integrating it into the top-level reusable workflow. After that, follow-up with another update to actually integrate the new action or reusable workflow into the top-level workflow.
+
+Integration/Staging Testing
+On push to a lower-environment branch in this repository, the deploy workflow will copy files to mirror repositories (integration, staging) and replace all internal references to this repository with references to that mirror repository. The example workflows in consuming repositories can be customized to point at the reusable workflows in those mirrors (which in turn will point to other actions/workflows in the mirror), allowing developers to test the updates.
+
+The intent is for integration to be the main developer test-bed: release-process-test_integration already points at the automation in the integration mirror, and that repository is customized to remove the approval requirements, allowing rapid testing.
+
+The intent is for staging to allow beta-testing of automation changes, if for some reason one of our 'real repositories' should receive and test the changes ahead of the rest of the org.
+
+Feature Branch Testing
+Since these are automations that run on GitHub, it's not possible to test all changes locally. In order to test changes before creating a pull request to an environment branch, push your feature branch to remote and invoke the Manually Deploy Feature Testing Mirror workflow with your feature branch and ticket as inputs.
+
+This will deploy to the feature-testing mirror, which is used by release-process-test_feature, as-above with integration testing. This repository also omits the approval requirements, allowing for rapid testing.
+
+Other Repositories
+This section explains the standard release process, and how to use the tools provided by this repository to implement it.
+
+The Standard Release Process
+The purpose of this section is to explain how to contribute code to MikMak repositories that implement the standard release process, and to release the code updates to environments.
+
+This section does not detail how to set up these repositories, or Jira projects. It also does not detail any steps of the planning or QA processes. Finally, it also does not serve as a full guide to Git, GitHub, or Jira usage. This guide will touch on elements of each, but it does for the sake of brevity assume some knowledge or defer other instructions/recommendations to other guides.
+
+When providing examples of how to interact with Git, this guide will refer to Git CLI commands, since the CLI comes standard with all Git installations. You may also use a third-party GUI to interact with Git, but this guide will not detail how to use them.
+
+Background
+At MikMak, we aim to deploy three standard environments for our applications and infrastructure. These are each associated with a separate branch to which developers merge code when they want to deploy features.
+
+integration: This is the first branch/environment to which developers merge/deploy new features. The purpose of this environment is to allow developers to test features in a low-risk environment, before getting other stakeholders involved, such as customers and other internal employees.
+staging: This next branch/environment is used mainly as a preview space for internal employees not in engineering. This includes stakeholders close to engineering such as Quality Assurance and Product Management, but also could include other employees who need to see features before they are released to customers
+production: This is the final environment, which customers/shoppers actually access when using our applications. This environment is based off the main or master branch in the Git repository.
+Jira projects are expected to follow a workflow that tracks which environment contains the feature under development for a ticket.
+
+In Progress: The code is currently being written and tested on a developer’s machine.
+In Review: The code is currently undergoing peer-review before being merged to integration
+Integration Testing: Initial peer review is complete, and the code is currently being or already has been deployed to the integration environment, and is awaiting testing in that environment.
+Staging Testing: Testing in integration passed, and the code is currently being or already has been deployed to the staging environment, and is awaiting testing in that environment, or manager/SME code review.
+Prod Validation: Testing in staging passed, manager/SME code review is complete, the code is currently being or already has been deployed to the production environment, and is awaiting testing in that environment.
+Develop on a Feature Branch
+Following this process, developers should start by creating a feature branch based on the main or master branch of the repository. This feature branch does not necessarily have to have a specific name format, but the best practice is to at least include a Jira ticket key in the branch name. This enables the GitHub for Jira app to tie the branch to the associated ticket.
+
+You can either create the branch in GitHub and check it out on your local machine, or you can create it on your local machine and push it to GitHub.
+
+Create the Branch in GitHub
+Starting on your the repository’s homepage, go to the Branch view:
+
+Screenshot showing where to find a repository's branch list in GitHub
+
+Next, open the New branch dialog:
+
+Screenshot showing how to create a new branch in GitHub
+
+In the dialog that pops up, set the branch name, and ensure the Source is set to main or master.
+
+Finally, you’ll have to check out the branch on your local machine. Navigate to your repository in the shell and run the following commands:
+
+git fetch
+git checkout {FEATURE_BRANCH_NAME}
+Create the Branch Locally
+Before creating the new branch, it’s best to start with a clean slate and an up-to-date main branch, to avoid mixing work from different tickets together, and to avoid merge conflicts.
+
+Check first that you have no outstanding changes:
+
+git status
+This will show if you have any staged or unstaged changes. If you do, you can either check out a new branch and commit those changes to it before switching back to main, stash the changes, or reset the changes. We may add a guide on how to accomplish these later.
+
+Once you have a clean slate, ensure you have checked out main. The shell prompt should tell you which branch is currently checked-out. To checkout main, run this command:
+
+git checkout main
+Next, ensure your copy of main is up-to-date. Run the following command:
+
+git pull
+Finally, you can create your new feature branch. Run the following command:
+
+git checkout -b {FEATURE_BRANCH_NAME}
+Now you’re ready to start making changes locally.
+
+Commit Your Changes
+The only formal requirement on how to commit changes relates to the commit messages. Every commit message must contain the key of a related Jira ticket. Later steps of the release process will reject any changes not tied to a Jira ticket.
+
+When committing, we recommend the following format:
+
+git commit -m "{JIRA-KEY} {COMMIT_MESSAGE}"
+This makes it immediately evident to a human reader to which ticket the commit relates, but it is not technically necessary; the ticket key can be placed anywhere in the commit message in order to be accepted by the release process automation.
+
+If your commit must contain changes related to multiple tickets, simply include all related ticket keys in the commit message: the release process will react accordingly.
+
+Update your Feature Branch from Main
+Although not always technically necessary, it’s good practice to update your feature branch with the latest changes to main before submitting your feature branch. This does become necessary to resolve merge conflicts against main, and you don’t want to find that out too late in the process!
+
+You can accomplish this with the following commands:
+
+git checkout main
+git pull
+git checkout {FEATURE_BRANCH}
+git rebase main
+Or, in one command, in the context of your feature branch:
+
+git pull --rebase origin main
+(The above doesn’t update your local copy of main; it only updates the feature branch)
+
+You may run into merge conflicts at this point; resolving those is outside of the scope of this document. You may also of course receive changes from main which otherwise break your feature. Make sure to verify what you can locally is working before moving on to the next step.
+
+Like to Squash-Merge?
+The next section describes how you must merge your changes to standard environment branches. If you want to condense your changes to one commit for the feature, or otherwise clean up your commit history, you may want to squash-merge. GitHub provides the option to do this when submitting Pull Requests, but we disable it for the repositories implementing this release process, because it can cause problems with commit validation and diffs when done inconsistently.
+
+You still have the option to do this with feature branches before you submit your pull requests. Just create a new feature branch, and git merge your old feature branch to that with the --squash flag. Then, use this new feature branch for the rest of the process.
+
+Submit Changes Using Pull Requests
+All changes on feature branches must be merged to environment branches using Pull Requests in GitHub. Depending on the type of repository, developers either have to create pull requests to all three environment branches (following the Standard CI/CD Workflow), or just to main/master (following the Main/Master-Only Integration Workflow).
+
+If the following conditions are true, then follow the Main/Master-Only Integration Workflow
+
+The repository has a "Contributing" section in the README indicating that it uses the standard release process. Likely, this will also tell you that it's an exception, allowing you to skip the next two checks.
+The repository does not have an integration or staging branch.
+The repository hosts documentation, a developer tool, or a library; in other words, the code is not deployed to any infrastructure.
+If these conditions are not met, follow the Standard CI/CD Workflow.
+
+In both cases, review the rest of the notes in this section before proceeding, since they apply to both workflows.
+
+The release process automation blocks any changes from being pushed directly to any of the three standard environment branches: they must come through a pull request. There are also automations and rules enforcing different review requirements and status checks on commit and ticket state. Finally, developers may have chosen to implement repository-specific code quality status checks that are triggered by pull requests.
+
+To create a pull request, navigate to the repository in GitHub and go to the “Pull Requests” tab: Screenshot showing how to see the list of pull requests in a GitHub repository
+
+Next, hit the button to create a PR: Screenshot showing how to create a pull request in a GitHub repository
+
+This will open a page to select the base and compare branches: you can consider these the environment and feature branches, respectively. Select your feature branch as the compare branch. The base branch will vary depending on environment: see the child sections here to determine which order to create these in. Screenshot showing how to set the branches on a pull request in GitHub
+
+From here, you will be prompted to set the title and content of the pull request.
+
+There are no organization-wide requirements on the content of pull requests: these are largely up to the owners of each repository. Some teams may implement templates to suggest the content of pull requests.
+
+We strongly suggest at least adding the associate Jira ticket(s) key(s) to the pull request title. This enables the GitHub for Jira app to link the pull requests to the Jira ticket.
+
+Our preferred pull request title format is as follows:
+
+[{ENV_BRANCH}] {JIRA_KEY}: {JIRA_TITLE}
+Standard CI/CD Workflow
+PR to Integration
+In the standard workflow, integration is the first branch to target with your pull requests. There are a few requirements the release automation enforces before you can merge these:
+
+All the related Jira tickets must be in the In Review state. The PR validation workflow should automatically transition your tickets to this state from In Progress or QA Failed when you submit your PR.
+Your PR must receive at least one approval from peer-reviewers.
+All discussions on the PR must be resolved.
+When you create the pull request, your ticket can be automatically transitioned from the QA Failed or In Process states to In Review, so requirement 1 above is also satisfied when your ticket is in either of those states.
+
+After creating your pull request, you must request reviews from peers. We do not recommend requesting reviews at this stage from a member of the MikMak Eng Leads team, because you will be forced to get an approval from one of them anyway at a later stage. No specific requirements on who must approve these pull requests are enforced at this stage, although as general guidelines, we recommend selecting at least two reviewers who each meet at least one of the following criteria:
+
+Have specifically requested to review your changes
+Are familiar with the application being updated, and/or its tech stack
+Want to become familiar with the application being updated, and/or its tech stack
+Are familiar with the project associated with these updates
+After merging your pull request, your Jira ticket will be transitioned to the Integration Testing state. Your changes should automatically be deployed to the integration environment, depending on the deployment automation specific to that repository. After changes are deployed, a comment will automatically be added to the associated ticket(s) indicating all the commits from the PR which were deployed.
+
+Do not delete your feature branch yet!
+
+PR to Staging
+After deploying and testing your ticket in integration, you must submit a pull request to staging. There are a few requirements the release automation enforces before you can merge these:
+
+All the related Jira tickets must be in the Integration Testing state.
+All commits in the PR must already be in the integration branch.
+After merging your pull request, your Jira ticket will be transitioned to the Staging Testing state. Your changes should automatically be deployed to the staging environment, depending on the deployment automation specific to that repository. After changes are deployed, a comment will automatically be added to the associated ticket(s) indicating all the commits from the PR which were deployed.
+
+Do not delete your feature branch yet!
+
+PR to Main or Master
+After deploying and testing your ticket in staging, you must submit a pull request to main or master.
+
+There are a few requirements the release automation enforces before you can merge a pull request to main/master:
+
+All the related Jira tickets must be in the Staging Testing state.
+All commits in the PR must already be in the staging branch.
+Your PR must receive at least one approval from a member of the MikMak Eng Leads team.
+All discussions on the PR must be resolved.
+After creating your pull request, to help satisfy requirement 3 above, you should request a review from a member of that team. As a general guideline, you should select the member of that team most familiar with the application being updated, and/or the project associated with the update, unless one has specifically requested to review the changes, or gatekeep the production release.
+
+After merging your pull request, your Jira ticket will be transitioned to the Prod Validation state, and your feature branch will be deleted. Your changes should automatically be deployed to the production environment, depending on the deployment automation specific to that repository. After changes are deployed, a comment will automatically be added to the associated ticket(s) indicating all the commits from the PR which were deployed.
+
+Main/Master-Only Integration Workflow
+In this workflow, only a pull request to main/master is needed, since the changes in these repositories are not deployed to any environments; rather, they need no QA testing (ex. documentation, or developer tools), or testing must happen when the changes are integrated into another repository (ex. a library/plugin).
+
+There are a few requirements the release automation enforces before you can merge the pull request:
+
+All the related Jira tickets must be in the In Review state.
+Your PR must receive at least one approval from a member of the MikMak Eng Leads team.
+All discussions on the PR must be resolved.
+When you create the pull request, your ticket can be automatically transitioned from the QA Failed or In Process states to In Review, so requirement 1 above is also satisfied when your ticket is in either of those states.
+
+After creating your pull request, to help satisfy requirement 2 above, you should request a review from a member of that team. As a general guideline, you should select the member of that team most familiar with the application being updated, and/or the project associated with the update, unless one has specifically requested to review the changes, or gatekeep the production release.
+
+After merging your pull request, your Jira ticket will be transitioned to the Prod Validation state, and your feature branch will be deleted.
+
+Unhappy Paths
+The earlier sections describe a happy-path where there the release process operates without friction, and tests pass without issue on the first try. That’s obviously not going to happen all the time, so this section attempts to describe what to do when you encounter some common scenarios
+
+Failed Status Checks
+Commonly, you may have pull requests where status checks failed. Examples for why this could happen include, among others,
+
+Incorrect ticket status when creating the PR
+Forgetting to merge to the previous environment branch first
+Failing linter
+Status checks from another environment’s PR showing up
+Generally speaking, the first step it to check whether the failed status check is actually required. This can be particularly confusing if you open pull requests from your feature branch to multiple environment branches at once, which generates statuses that will be shown on all the PRs containing your commits. Only the ones that apply to the specific environment the PR targets will be required, which will be indicated by a pill on the status.
+
+You can tell that all required statuses are passing individually, or simply by seeing that the merge button is enabled (all passing) or disabled (at least one not passing): Screenshot showing how to determine if a PR has failed status checks
+
+If there are status checks that didn’t pass that should pass now (such as ticket validation, but you updated the Jira ticket to the correct status since the last check failed), then you can click on the Details link to go to the workflow execution, and then Re-Run All Jobs to invoke it again: Screenshot showing how to re-run a failed workflow
+
+It's important to re-run all jobs, and not just the failed ones, because the get-tickets-status job of the PR validation workflows pulls in ticket status that it shares to multiple dependent jobs. This job may not fail before its dependents, and re-running only the failed dependent jobs will cause them to re-use the stale ticket status from the last workflow run.
+
+Chose the Wrong Base Branch in a PR
+If you choose the wrong base branch when you create a PR, you must create a new PR against the correct base branch.
+
+We had to remove the edited type from the list of PR event types that invoke the validation workflows, which is the event type that tracks base branch changes. So, if you just change the base branch on a PR, the required status checks on the PR update correctly, but the correct PR validation workflow will not be triggered, leaving the PR forever invalid.
+
+We removed the edited event from this list of triggers because the Jira app edits PR bodies if you include a ticket ID or link, which is part of our standard PR template. This caused duplicate workflow runs to spawn for every pull request, which both wasted GitHub Actions minutes, and also caused a race condition in the auto-transition job relevant to PRs to integration.
+
+We can't just conditionally execute the jobs if the edited event was invoked in response to a base branch change. Indeed, the edited event type contains properties which inform us what kind of change occurred, but conditionally skipping jobs in this way causes them to be reported as successful to the branch protections, which would allow developers to bypass the required status checks. Since this scenario would be hit on essentially every pull request due to the Jira app’s behavior, it essentially would mean that all validations are moot, and we’re just wasting money on Actions minutes for no reason.
+
+Forgot to Include a Jira ticket ID from a Valid Project on a Commit Message
+If you forgot to include a Jira ticket ID from a valid Jira project on a commit message, then your PR validation will fail, indicating such, and you will have to update your commit messages somehow to include an appropriate Jira ticket ID.
+
+There are two strategies you can use to update your commit messages, which are discussed in the following subsections. Both solutions involve cutting a new feature branch, which you must PR to all environment branches, rather than your old feature branch with the invalid commit(s).
+
+Currently, only the ME project should be used to track all code development, but in the interest of future flexibility, we instead maintain a list of ignored Jira projects that will not factor into any aspect of the commit message validation. That list includes the following projects:
+
+ATEAM
+TMP
+Commit messages may be tagged with IDs of tickets in those projects, but must be accompannied by one or more IDs of tickets in valid projects.
+
+Squash Your Commits
+The easiest way to update a commit message, especially if there are many changes in your PR, is to squash all commits into one, and write out that new message with the appropriate ticket ID(s).
+
+Cut a new feature branch from main/master
+git merge --squash {OLD-FEATURE-BRANCH}
+git commit -m {NEW-COMMIT-MESSAGE}
+The downside to this approach is that you lose the ability to track/revert smaller changesets using your original commit history.
+
+Cherry-Pick Your Commits
+If squash-merging doesn't seem like a good option for you, then you can cherry-pick all your commits to a new feature branch, which actually generates a new commit and consequently allows you to write a new commit message.
+
+First, cut a new feature branch from main/master.
+
+Next, you must git cherry-pick {COMMIT-ID} each of your commits in chronological order. You can get these commit IDs either by looking at the git log, or by viewing in GitHub the commit history of either your feature branch, or your PR. The latter option is recommended over the former, because it's less visually noisy, and because it offers a handy button to copy the ID: Screenshot showing how to copy commit IDs in GitHub
+
+Each time you cherry-pick a commit, you will be prompted to update the message on the original commit. Be sure to add your ticket ID(s) to the invalid one!
+
+Add More Changes by Request or to Fix a Bug
+If you find during testing or review by stakeholders that you need to make more changes to your feature, then you will need to re-release the code in new pull requests.
+
+In any case, you will need to fail your Jira ticket all the way back to the In Progress state.
+
+If you already released to production, then you should either re-create your feature branch, or update it with the latest changes from main. It’s good practice to at least do the latter, no matter where in the process you had to step back.
+
+Next, you can make your changes as usual. You will have to release your changes to all the environments.
+
+Merge Conflicts
+If you run into merge conflicts when attempting through your PR to merge to an environment branch, then you will have to go through some special steps to resolve it.
+
+Conflicts with Main
+If you have a conflict with your PR to main, then you simply need to merge main into your feature branch locally, resolve the conflict, and re-release your feature to all environments. This is the most tedious scenario, which is why it’s best to mitigate the risk of running into it as much as possible by updating your feature branch from main before creating your initial PRs.
+
+Conflicts with Integration/Staging
+If you run into a conflict when trying to merge a PR to one of the two lower-environment branches, then you’ll have to do some special steps to resolve the conflict without running into issues with the PR validation rules.
+
+Generally speaking, before doing the next steps, it may help to find out which ticket(s) conflict(s) with your changes. You can mitigate the risk of further conflicts on any side in later PRs by negotiating a release order. There are two main options:
+
+You can agree to merge your changes to a shared feature branch which you release together, and resolve the conflicts there.
+You can decide on a release order for your tickets, and either
+Merge feature branches for tickets earlier in the order to the feature branch(es) for tickets later in the order, resolving the conflicts in those branches. Tickets lower in the order wait on tickets higher in the order to merge to each environment first.
+Wait for tickets ahead of yours to go to main, then update your feature branch from main, resolve the conflicts, and proceed as-usual ahead of tickets later in the order.
+If you decide on option two above, the owner of the first ticket in the order may resolve conflicts against the environment branch without restarting their release at integration. To resolve these conflicts, they can create a special ‘conflict-resolution’ branch based off of the environment branch (as opposed to main as they’d do under normal circumstances). Then, locally merge their feature branch to it, and resolve the conflict there. Finally, push the changes to remote and create a pull request to the environment branch. Then, they should continue to use their original feature branch in subsequent PRs; they SHOULD NOT use their conflict resolution branch for anything other than the one resolution against the one environment branch, since that could promote changes unrelated to their ticket before they are ready.
+
+The above strategies mitigate the risk of accidentally applying different resolutions to different environment branches, which could lead to a diverging codebase across environment branches. It's possible for all developers involved with the conflict to all just use conflict-resolution branches and release without anyone restarting their release, but this makes it way more likely that conflicts will not all be resolved the same way.
+
+Diverging Branches
+The main weakness of the release process relates to how merge conflict resolution must be done, as discussed in the previous section. Merge conflicts must be resolved specifically against the environment branches, unless the developers are comfortable with conflicting changes reaching main/master before resolving the conflicts in their feature branch. If conflicts are ever resolved differently in any environment branch with respect to any other environment branch, then the branches have diverged, which could lead to differences in behavior across environments. This is why the previous section recommends some strategies to reduce the amount of conflict resolutions developers will have to do once they have encountered a conflict once somewhere in the process.
+
+If divergence does occur, then the only way to restore consistency across the environments is to re-create the integration and staging environments from the main or master branch. Before doing so, however, it’s best to diff the lower environment branches against main /master and compile a list of tickets which would need to be re-deployed to the lower environments, and determine if there are still feature branches containing those changes.
+
+After the list of in-flight tickets is compiled, an organization owner in GitHub must to do the following tasks:
+
+Disable the envs-restrict-creation-deletion-forcepush ruleset in the affected repository
+Delete the integration and staging branches
+Re-create the integration and staging branches from the main or master branch
+Re-enable the ruleset from step 1
+Finally, merge all the in-flight tickets’ changes back to the lower environment branches they were in, from their feature branches.
+
+Setting Up a New GitHub Repository
+The purpose of this section is to detail how MikMak developers should set up a new GitHub repository, conforming to our standard release process.
+
+This section does not detail how to develop new features inside of these repositories: see the READMEs in each individual repository.
+
+This section references assets contained in this repository. Each required/recommended asset will be explained in the following sections, although they do not explain all their implementation details: see the READMEs in each (sub)directory.
+
+Workflow Differences
+Repositories may be set up differently, depending on whether they will follow the Standard CI/CD Workflow, or the Main/Master-Only Integration Workflow. Generally speaking, most repositories should implement the former; the latter should be implemented only in repositories which only host documentation, a developer tool, or a library; in other words, the code/assets are not deployed to any infrastructure.
+
+The following sections explain primarily how to install the standard CI/CD workflow on a repository. Any differences required to implement instead the main/master-only workflow will also be listed.
+
+Create Environment Branches
+At MikMak, we aim to deploy three standard environments for our applications and infrastructure. These are each associated with a separate branch to which developers merge code when they want to deploy features.
+
+integration: This is the first branch/environment to which developers merge/deploy new features. The purpose of this environment is to allow developers to test features in a low-risk environment, before getting other stakeholders involved, such as customers and other internal employees.
+staging: This next branch/environment is used mainly as a preview space for internal employees not in engineering. This includes stakeholders close to engineering such as Quality Assurance and Product Management, but also could include other employees who need to see features before they are released to customers
+production: This is the final environment, which customers/shoppers actually access when using our applications. This environment is based off the main or master branch in the Git repository.
+The first step after creating a new Git repository is to create these three branches. main should be created automatically when first creating the repository; you will have to manually create the other two, which is only necessary if this repository should follow the standard CI/CD workflow.
+
+The easiest way to create these new branches is through GitHub’s web UI. Starting on your new repository’s homepage, go to the Branch view: Screenshot showing where to find a repository's branch list in GitHub
+
+Next, open the New branch dialog: Screenshot showing how to create a new branch in GitHub
+
+Finally, set the branch name, and ensure the Source is set to main. Do this for both staging and integration.
+
+Implement Standard Workflows
+At MikMak, we require review and approval of code changes at several steps in the development process, to help ensure code quality, to help other developers gain an awareness and understanding of changes, and to help schedule code releases. We use Pull Requests to implement this review and approval process. Supporting these objectives around pull requests, we have implemented some standard GitHub Workflows and supporting Actions to validate the content of Pull Requests, and to deploy code in response to merged pull requests.
+
+Generally speaking, the standard workflows are implemented as workflows which reference reusable workflows, so most updates to the process can be distributed automatically. These all live in the .github/workflows directory, and will be individually referenced in the following subsections.
+
+Pull Request Validation Workflow
+The purpose of the Pull Request Validation Workflows is to check that commits and their associated tickets are being transitioned to environments in the correct order.
+
+Pull Request validation comes in two types:
+
+Commit Validation: ensuring that feature branches are merged to lower environments before higher environments. This only applies to repositories which have more environment branches than just main/master.
+Ticket Validation: ensuring that Jira tickets correctly track the progress of code.
+Drop the applicable example_pr-status-checks-{branch} workflow files from the starter kit’s workflows in your repository’s .github/workflows directory, and remove the example_ file prefix.
+
+So, if this repository should implement the standard CI/CD workflow, all three PR status check workflows are needed; if it should implement the partial workflow for main/master-only repositories, then only the workflow for main is needed, AND the is-main-only input for the underlying reusable workflow must be toggled to true.
+
+These do assume that a specific Jira project workflow is used: the workflows will not work for Jira projects using a non-standard workflow.
+
+Leads’ Approval Check Workflow
+We require sign-off from the engineering leads to merge pull requests targeting main/master, so they are aware of all the changes for which they are responsible that are deployed to production, and so they have a final chance to verify all requirements have been followed.
+
+All you have to do is drop the leads' approval requirement workflow in your repository’s .github/workflows directory, and remove the example_ prefix.
+
+Post-Merge Workflow
+To reduce Jira ticket micromanagement, we implemented a workflow to transition tickets associated with commits in a merged PR to the next state.
+
+Drop the post-merge workflow in your repository’s .github/workflows directory, and remove the example_ prefix.
+
+If this repository should implement the main/master-only CI/CD workflow, then the is-main-only input for the underlying reusable workflow must be toggled to true.
+
+This does assume that a specific Jira project workflow is used: it will not work for Jira projects using a non-standard workflow.
+
+Deployment Automation Workflow
+All repositories tied to an application should automatically deploy code, both to expedite the development process, and to reduce risk of user error. This step should be skipped if the repository should implement the standard CI/CD workflow.
+
+Start by dropping the deployment workflow template from the release process starter kit in your repository’s .github/workflows directory, and remove the example_ prefix.
+
+You have to customize this file to implement deployments for your repository. Leave alone the set-environment-variable, replace the deploy job with whatever job(s) you need to deploy your code to the target environment returned by set-environment-variable, and update the notify-deployment job to wait for any extra jobs you added in the middle.
+
+It’s not in scope for this document to describe approaches to creating these jobs for different programming languages and/or target infrastructure; for now you’ll have to look into it yourself, or seek out examples in the MikMak or Swaven organizations' repositories.
+
+Import Rulesets
+We use GitHub Rulesets to ultimately enforce all the requirements in the standard development process. They enforce the branch protections, pull request requirement, and per-environment status checks.
+
+This repository contains a collection of rulesets which you need to import to your new repository, after following all the steps in previous sections.
+
+Starting on your new repository’s homepage, go to the Settings: Screenshot showing where the repository settings can be accessed in GitHub
+
+Then to the Rules > Rulesets: Screenshot showing where to access the repository rulesets menus in GitHub
+
+Then New ruleset > Import a ruleset: Screenshot showing how to open the ruleset import dialog for a GitHub repository
+
+This will open a file upload dialog. Pick the ruleset file from the starter kit you want to upload. This will open the ruleset edit dialog. You don’t need to make any further changes to the ruleset: simply scroll to the bottom of the page and hit Create.
+
+Repeat this process for all the rulesets in the starter kit, except for the two main-require-leads-approval* rulesets: if this repository should implement the main/master-only CI/CD workflow, install the one tagged partial; otherwise, install the other one.
+
+Only Allow Merge-Commits from PRs
+This step is only necessary if this repository should implement the standard CI/CD workflow; otherwise, it may be skipped.
+
+We want to prevent squash-merging of pull requests against lower-environment branches, because if done inconsistently across environment branches, then PRs can be invalidated for including commits not present in earlier environment branches.
+
+Rebase-merging introduces a similar problem, because when commits are replayed, the commit hash changes, leading to different hashes for each PR merge.
+
+Also, the first feature branch being merged to lower environment branches after a squash-merge or rebase-merge to main/master would show the entire diff of that merge, in addition to the changes actually relevant to the PR.
+
+So, eliminating squash and rebase merges avoids these two problems.
+
+Starting on your new repository’s homepage, go to the Settings: Screenshot showing where the repository settings can be accessed in GitHub
+
+Then, scroll down until the Pull Requests section, and uncheck 'Allow squash merging' and 'Allow rebase merging': Screenshot showing where the squash merge setting is located
+
+Disable PR Head Branch Auto-Deletion
+We want to disable the automated deletion of head branches in pull requests, since the standard code integration process relies on the same feature branch being re-used for pull requests against multiple environment branches, and because some post-merge actions use the feature branch. The GitHub pull request UI allows for restoration of these branches in the event they are deleted, but disabling the feature entirely will save developers some headache. The post-merge actions workflow implements this feature instead.
+
+Starting on your new repository’s homepage, go to the Settings: Screenshot showing where the repository settings can be accessed in GitHub
+
+Then, scroll down until the Pull Requests section, and uncheck 'Automatically delete head branches': Screenshot showing where the head branch autodelete setting is located
+
+About
+Files which can be used to configure GitHub repositories, according to our standard release process
+
+Resources
+ Readme
+ Activity
+ Custom properties
+Stars
+ 0 stars
+Watchers
+ 7 watching
+Forks
+ 0 forks
+Releases
+No releases published
+Packages
+No packages published
+Languages
+JavaScript
+100.0%
+Footer
