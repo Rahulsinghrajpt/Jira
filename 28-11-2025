@@ -32,3 +32,49 @@ Files with "week" column → renamed to "Date"
 Files with "primeday_week", "blackfriday_week" → left unchanged
 Files with both "Date" and "week" → "Date" kept, "week" not processed
 Should I create a patch file with this fix, or do you want to apply it directly?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Step 1: Create Lambda Zip Package
+# Navigate to Lambda function directorycd C:\Users\anish_ksc\Desktop\local_repo\MikGorilla.AI\data_ingestion_pipeline\lambdas\mmm_dev_data_transfer# Create zip package with updated codeCompress-Archive -Path *.py -DestinationPath mmm_dev_data_transfer.zip -Force# Verify zip was createdTest-Path mmm_dev_data_transfer.zip# Should return: True
+Step 2: Navigate to Terraform Directory
+# Navigate to terraform directorycd C:\Users\anish_ksc\Desktop\local_repo\MikGorilla.AI\data_ingestion_pipeline\terraform
+Step 3: Verify Terraform Workspace
+# Check current workspace (should be 'default' for dev)terraform workspace show# If not 'default', switch to itterraform workspace select default
+Step 4: Refresh AWS Credentials (if needed)
+# Check if credentials are validaws sts get-caller-identity# If you get "ExpiredToken" error, refresh credentials:# Option 1: AWS SSOaws sso login --profile your-profile-name# Option 2: Set environment variables$env:AWS_ACCESS_KEY_ID = "your-access-key"$env:AWS_SECRET_ACCESS_KEY = "your-secret-key"$env:AWS_SESSION_TOKEN = "your-session-token"  # If using temporary credentials
+Step 5: Validate Terraform Configuration
+# Validate syntaxterraform validate# Expected output: Success! The configuration is valid.
+Step 6: Plan Deployment
+# Generate deployment plan.\deploy.ps1 -Environment dev -Action plan
+Review the plan:
+aws_lambda_function.data_transfer should show source_code_hash change
+aws_lambda_alias.data_transfer_live should show version update
+No other resources should change
+Expected output:
+Plan: 0 to add, 2 to change, 0 to destroy.
+Step 7: Apply Deployment
+# Deploy changes to dev environment.\deploy.ps1 -Environment dev -Action apply
+During apply:
+Review the plan when prompted
+Type yes to confirm
+Wait for completion (typically 1-2 minutes)
+Expected output:
+Apply complete! Resources: 0 added, 2 changed, 0 destroyed.
+Step 8: Verify Lambda Deployment
+# Check Lambda function was updatedaws lambda get-function --function-name mmm_dev_data_transfer --query 'Configuration.{Version:Version, LastModified:LastModified}' --output table# Expected: LastModified should show current timestamp
+Step 9: Trigger Data Ingestion Pipeline
+Option A: Trigger via Step Function (Recommended)
+# Get Step Function ARN for dev$sfnArn = "arn:aws:states:eu-west-1:931493483974:stateMachine:mmm_dev_data_ingestion_orchestrator"# Start execution$execution = aws stepfunctions start-execution `    --state-machine-arn $sfnArn `    --input '{}' | ConvertFrom-Json# Save execution ARN$executionArn = $execution.executionArn
