@@ -1,0 +1,52 @@
+Resource,Function,Type,Category,AWS Env,Data Isolation,Upstream dependencies,Downstream dependencies,Priority,Observability
+,,,,,,,,,
+,,,Data Ingestion,Management,,,,,
+,,,Prediction Pipeline,MikGorilla,,,,,
+,,,Dashboards,,,,,,
+,,,Optimization pipeline,,,,,,
+,,,,,,,,,
+mmm-dev-outer-training-pipeline,Orchestrate brands,Step Function,Training Pipeline,MikGorilla,,,,low,yes
+mmm-dev-inner-training-pipeline,Orchestrate retailers,Step Function,Training Pipeline,MikGorilla,,,,low,yes
+mmm-dev-eligibility-checker,Check if eligible for training,Lambda,Training Pipeline,MikGorilla,,,,low,yes
+mmm-dev-training-status,Contain logs for training pipeline,DDB,Training Pipeline,MikGorilla,,,,low,yes
+mmm-dev-training-data,temporary processed data bucket,S3,Training Pipeline,MikGorilla,,,,low,yes
+mmm-dev-model-repo,Approved models storage,S3,Training Pipeline,MikGorilla,,,,low,yes
+mmm-dev-audit-logs,Centeral bucket of all logs,S3,All,MikGorilla,,,,High,yes
+mmm-dev-slack-notifier,slack alert for training,Lambda,Training Pipeline,MikGorilla,,,,low,
+mmm-dev-pipeline-infos,main source of truth for all pipleines,DDB,All,MikGorilla,,,,High,
+mmm-modeling,ECR IMage for training,ECR Image,Training Pipeline,MikGorilla,,,,low,
+mmm_dev_overview_insights,API Request Processor For Executive summary page ,Lambda,Dashboards,MikGorilla,,,,,
+mmm_data_exploration_dev_kpi_performance_insights,API Request Processor For Kpi performance page,Lambda,Dashboards,MikGorilla,,,,,
+mmm_data_exploration_dev_media_investments_insights,API Request Processor For Media Investment page,Lambda,Dashboards,MikGorilla,,,,,
+mmm_data_exploration_dev_analysis_insights,API Request Processor For Analysis page,Lambda,Dashboards,MikGorilla,,,,,
+mmm_data_exploration_dev_execution_insights,API Request Processor For execution page,Lambda,Dashboards,MikGorilla,,,,,
+mmm_dev_model_output_insights,API Request Processor For Model Output page,Lambda,Dashboards,MikGorilla,,,,,
+mmm_dev_drivers_insights,API Request Processor For Drivers page,Lambda,Dashboards,MikGorilla,,,,,
+mmm_dev_contribution_insights,API Request Processor For Contribution page,Lambda,Dashboards,MikGorilla,,,,,
+mmm_dev_roas_insights,API Request Processor For Roas page,Lambda,Dashboards,MikGorilla,,,,,
+meridian-optimizer-invoker,API Request Processor For Optimization page,Lambda,Optimization Pipeline,MikGorilla,,,,,
+check-eligible-retailers_dev,Query mmm-dev-pipeline-infos table for each eligible retailer,Lambda,Prediction Pipeline,MikGorilla,,,,,
+prediction-distributor_dev,Consume SQS message and trigger step function,Lambda,Prediction Pipeline,MikGorilla,,,,,
+model-upload-handler_dev,Trigger prediction pipeline when new model upload,Lambda,Prediction Pipeline,MikGorilla,,,,,
+mmm-dev-process-prediction-pipeline,Orchestrate for prediction pipeline ,Step Function,Prediction Pipeline,MikGorilla,,,,,
+mmm-prediction-poc,ECR Image For Prediction Pipeline,ECR Image,Prediction Pipeline,MikGorilla,,,,,
+meridian-budget-optimizer,ECR Image for Optimization ,ECR Image,Optimization Pipeline,MikGorilla,,,,,
+Mikgorilla_API_Dev (15 routes in this API for all pages),APIs For All Pages,API Gateway,Dashboards,MikGorilla,,,,,
+mmm-dev-data-exploration,Stored insights for data exploration pages.,S3,Dashboards,MikGorilla,,,,,
+mmm-dev-prediction-archive,Stored insights for Modelling Insights pages,S3,Prediction Pipeline,MikGorilla,,,,,
+"mmm-dev-prediction-data",Stored processed post training,S3,Prediction Pipeline,MikGorilla,,,,,
+mmm-dev-model-output,Stored data for Model Output page,DDB,Dashboards,MikGorilla,,,,,
+mmm-dev-drivers,Stored data for Drivers page,DDB,Dashboards,MikGorilla,,,,,
+mmm-dev-contribution,Stored data for Contribution page,DDB,Dashboards,MikGorilla,,,,,
+mmm-dev-roas,Stored data for Roas page,DDB,Dashboards,MikGorilla,,,,,
+mmm-dev-opt-default,Stored default data for Optimization page,DDB,Dashboards,MikGorilla,,,,,
+mmm-dev-prediction-logs,Stored logs for Prediction Pipeline,DDB,Prediction Pipeline,MikGorilla,,,,,
+mmm-dev-prediction-status,Stored status for Prediction Pipeline,DDB,Prediction Pipeline,MikGorilla,,,,,
+mmm-model-triggered-dlq_dev,Dead letter queue,SQS,Prediction Pipeline,MikGorilla,,,,,
+mmm-model-triggered-queue_dev,SQS queue,SQS,Prediction Pipeline,MikGorilla,,,,,
+mmm-weekly-prediction-dlq_dev,Dead letter queue,SQS,Prediction Pipeline,MikGorilla,,,,,
+mmm-weekly-prediction-queue_dev,SQS queue,SQS,Prediction Pipeline,MikGorilla,,,,,
+mmm-weekly-prediction-trigger_dev,Daily run for Prediction Pipeline,Event Bridge,Prediction Pipeline,MikGorilla,,,,,
+budget-optimizer-endpoint,Trigger the endpoint for optimization page.,Sagemaker Endpoint,Optimization Pipeline,MikGorilla,,,,,
+dev-mmm-client-metadata,Store client metadata,DDB,Dashboards,MikGorilla,,,,,
+dev-mmm-get-client-data,"Fetches the client metadata (retailers, channels, etc) from DDB",Lambda,Dashboards,MikGorilla,,,,,
