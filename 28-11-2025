@@ -78,3 +78,17 @@ Step 8: Verify Lambda Deployment
 Step 9: Trigger Data Ingestion Pipeline
 Option A: Trigger via Step Function (Recommended)
 # Get Step Function ARN for dev$sfnArn = "arn:aws:states:eu-west-1:931493483974:stateMachine:mmm_dev_data_ingestion_orchestrator"# Start execution$execution = aws stepfunctions start-execution `    --state-machine-arn $sfnArn `    --input '{}' | ConvertFrom-Json# Save execution ARN$executionArn = $execution.executionArn
+
+
+
+
+
+
+
+
+
+API gateway should be public, behind the VPN, No auth is required. For VPN config you need to connect with Dane Thomas engineering manager of platform. Get method should be OK, endpoint name onboarding 
+
+
+Sir,
+Can you please provide the status on the VPN and the discussions that happened internally with Dane Thomas so that we can go ahead and implement the mini-pipeline for onboarding the clients?
