@@ -140,3 +140,52 @@ Expected Output: Should show changes to aws_lambda_function.data_transfer resour
 Step 6: Deploy Changes
 .\deploy.ps1 -Environment dev -Action apply
 
+
+
+
+
+
+2026-01-08T17:50:05.492+05:30
+INIT_START Runtime Version: python:3.12.v101 Runtime Version ARN: arn:aws:lambda:eu-west-1::runtime:994aac32248ecf4d69d9f5e9a3a57aba3ccea19d94170a61d5ecf978927e1b0f
+2026-01-08T17:50:08.282+05:30
+[INFO] 2026-01-08T12:20:08.282Z Found credentials in environment variables.
+2026-01-08T17:50:08.540+05:30
+START RequestId: 7d60ff11-99d5-41a8-be96-8bead0e1f6ad Version: $LATEST
+2026-01-08T17:50:08.541+05:30
+[INFO] 2026-01-08T12:20:08.540Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad Lambda 2 started: madebygather/bella_us/national (brand_id=bella-US, brand_name=Bella US)
+2026-01-08T17:50:08.599+05:30
+[INFO] 2026-01-08T12:20:08.599Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad ✓ Connected to DynamoDB table: mmm-dev-pipeline-infos (region: eu-west-1, environment: dev)
+2026-01-08T17:50:08.618+05:30
+[WARNING] 2026-01-08T12:20:08.618Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad ⚠ Pipeline info not found with normalized key 'bella_us#national'. Querying DynamoDB to discover actual brand_retailer_key format...
+2026-01-08T17:50:08.624+05:30
+[INFO] 2026-01-08T12:20:08.624Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad ✓ Discovered brand_retailer_key format from DynamoDB: madebygather/bella-US#national (brand_id=bella-US, retailer_id=national)
+2026-01-08T17:50:08.624+05:30
+[WARNING] 2026-01-08T12:20:08.624Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad ⚠ Using discovered brand_retailer_key format: 'bella-US#national' (differs from normalized: 'bella_us#national'). RECOMMENDATION: Update DynamoDB record to use normalized format for consistency. Migration steps: 1) Update create_pipeline_info() to auto-normalize keys, 2) Run migration script, 3) Remove discovery logic.
+2026-01-08T17:50:08.628+05:30
+[WARNING] 2026-01-08T12:20:08.628Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad ✓ Retrieved pipeline info using discovered key: madebygather/bella-US#national. ACTION REQUIRED: Migrate record to normalized format 'bella_us#national'. Migration steps: 1) Update create_pipeline_info() to auto-normalize keys, 2) Run migration script to update existing records, 3) Remove discovery logic from get_pipeline_info().
+2026-01-08T17:50:08.629+05:30
+[INFO] 2026-01-08T12:20:08.629Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad Found last_data_updated: 2025-12-11 (will filter files older than this)
+2026-01-08T17:50:08.629+05:30
+[INFO] 2026-01-08T12:20:08.629Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad Scanning: s3://prd-mm-vendor-sync/tracer/ for madebygather/bella_us/national
+2026-01-08T17:50:08.708+05:30
+[INFO] 2026-01-08T12:20:08.708Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad Found 2 matching files for madebygather/bella_us/national:
+2026-01-08T17:50:08.708+05:30
+[INFO] 2026-01-08T12:20:08.708Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad 1. 2026-01-madebygather_bella_us_national_359.csv | Modified: 2026-01-08 08:53:50 UTC | Size: 9,316 bytes → SELECTED
+2026-01-08T17:50:08.708+05:30
+[INFO] 2026-01-08T12:20:08.708Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad 2. 2025-12-madebygather_bella_us_national_359.csv | Modified: 2025-12-31 08:53:50 UTC | Size: 9,316 bytes
+2026-01-08T17:50:08.724+05:30
+[INFO] 2026-01-08T12:20:08.724Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad File freshness validated: Source file (2026-01-08) is newer than last processed (2025-12-11)
+2026-01-08T17:50:08.724+05:30
+[INFO] 2026-01-08T12:20:08.724Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad Processing: tracer/2026-01-madebygather_bella_us_national_359.csv
+2026-01-08T17:50:08.756+05:30
+[WARNING] 2026-01-08T12:20:08.756Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad Skipping invalid file tracer/2026-01-madebygather_bella_us_national_359.csv: Sales (or Retailer_Sales)
+2026-01-08T17:50:08.805+05:30
+[INFO] 2026-01-08T12:20:08.805Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad ✓ Transfer log written
+2026-01-08T17:50:08.881+05:30
+[INFO] 2026-01-08T12:20:08.881Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad ✓ Audit log written to S3
+2026-01-08T17:50:08.881+05:30
+[INFO] 2026-01-08T12:20:08.881Z 7d60ff11-99d5-41a8-be96-8bead0e1f6ad ✓ Lambda 2 completed: 0 files, 0 records
+2026-01-08T17:50:08.886+05:30
+END RequestId: 7d60ff11-99d5-41a8-be96-8bead0e1f6ad
+2026-01-08T17:50:08.886+05:30
+REPORT RequestId: 7d60ff11-99d5-41a8-be96-8bead0e1f6ad Duration: 345.23 ms Billed Duration: 3390 ms Memory Size: 2048 MB Max Memory Used: 202 MB Init Duration: 3044.41 ms
