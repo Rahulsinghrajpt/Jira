@@ -96,3 +96,47 @@ Step 2: Discover Real Format – If Step 1 fails, Query DynamoDB using the clien
 Step 3: Case-Insensitive Matching – Scan those records to find the brand and retailer (e.g., matching bella-US even if we searched for bella_us).
 
 Step 4: Use the "True" Key – Extract the exact key format found in the database and use it to complete the request.
+
+
+
+
+
+
+
+
+
+Phase 1: Package Lambda Functions
+Step 1: Navigate to Terraform Directory
+cd C:\Users\anish_ksc\Desktop\local_repo\MikGorilla.AI\data_ingestion_pipeline\terraform
+
+Step 2: Package data_transfer Lambda (Updated Code)
+
+# Navigate to data_transfer Lambda directorycd ..\lambdas\mmm_dev_data_transfer
+
+# Remove old ZIP if existsRemove-Item mmm_dev_data_transfer.zip -ErrorAction SilentlyContinue
+
+# Create temporary directory$tempDir = New-TemporaryFile | ForEach-Object { Remove-Item $_; New-Item -ItemType Directory -Path $_ }
+
+# Copy lambda functionCopy-Item lambda_function.py -Destination "$tempDir\lambda_function.py"
+
+# Copy src directory (contains utils modules)Copy-Item ..\..\src -Destination "$tempDir\src" -Recurse -Force
+
+# Create ZIPCompress-Archive -Path "$tempDir\*" -DestinationPath mmm_dev_data_transfer.zip -Force
+
+# CleanupRemove-Item $tempDir -Recurse -Force
+
+Step 3: Return to Terraform Directory
+cd ..\..\terraform
+
+Phase 2: Deploy Using Terraform
+Step 4: Verify Terraform Workspace
+# Check current workspace (should be 'default' for dev)
+terraform workspace show
+# If not 'default', switch to it
+terraform workspace select default
+Step 5: Run Terraform Plan (Review Changes)
+.\deploy.ps1 -Environment dev -Action plan
+Expected Output: Should show changes to aws_lambda_function.data_transfer resource (source_code_hash will change)
+Step 6: Deploy Changes
+.\deploy.ps1 -Environment dev -Action apply
+
