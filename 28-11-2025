@@ -86,9 +86,13 @@ Option A: Trigger via Step Function (Recommended)
 
 
 
+The Solution: "Query-Before-Failure"
+Instead of guessing the key format, we treat DynamoDB as the Source of Truth.
 
-API gateway should be public, behind the VPN, No auth is required. For VPN config you need to connect with Dane Thomas engineering manager of platform. Get method should be OK, endpoint name onboarding 
+Step 1: Try Standard Format – Attempt a direct lookup using the "ideal" normalized key (e.g., bella_us#amazon).
 
+Step 2: Discover Real Format – If Step 1 fails, Query DynamoDB using the client_id to see all records for that client.
 
-Sir,
-Can you please provide the status on the VPN and the discussions that happened internally with Dane Thomas so that we can go ahead and implement the mini-pipeline for onboarding the clients?
+Step 3: Case-Insensitive Matching – Scan those records to find the brand and retailer (e.g., matching bella-US even if we searched for bella_us).
+
+Step 4: Use the "True" Key – Extract the exact key format found in the database and use it to complete the request.
