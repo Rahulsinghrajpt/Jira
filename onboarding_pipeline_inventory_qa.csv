@@ -1,0 +1,36 @@
+Resource,Function,Type,Category,AWS Env,Data Isolation,Upstream dependencies,Downstream dependencies,Priority,Observability
+aws_api_gateway_rest_api.onboarding,Onboarding REST API Gateway,API Gateway,API,qa,Shared,None,"API Gateway Resources (resource, methods, integrations)",Critical,"CloudWatch Metrics, API Gateway Logs (if enabled)"
+aws_api_gateway_resource.onboarding,API Resource /onboarding,API Gateway Resource,API,qa,Shared,API Gateway REST API,"API Gateway Methods (POST, OPTIONS)",High,CloudWatch Metrics
+aws_api_gateway_method.post_onboarding,POST Method Handler,API Gateway Method,API,qa,Shared,"API Gateway REST API, API Gateway Resource","API Gateway Integration (Lambda)",Critical,CloudWatch Metrics
+aws_api_gateway_integration.lambda,Lambda Integration for POST,API Gateway Integration,API,qa,Shared,"API Gateway Method (POST), Lambda Function","API Gateway Deployment",Critical,CloudWatch Metrics
+aws_api_gateway_method.options_onboarding,CORS OPTIONS Method Handler,API Gateway Method,API,qa,Shared,"API Gateway REST API, API Gateway Resource","API Gateway Integration (OPTIONS)",Medium,CloudWatch Metrics
+aws_api_gateway_integration.options,CORS OPTIONS Integration,API Gateway Integration,API,qa,Shared,API Gateway Method (OPTIONS),"API Gateway Method Response",Medium,CloudWatch Metrics
+aws_api_gateway_method_response.options_200,CORS OPTIONS 200 Response,API Gateway Method Response,API,qa,Shared,API Gateway Method (OPTIONS),"API Gateway Integration Response",Medium,CloudWatch Metrics
+aws_api_gateway_integration_response.options,CORS OPTIONS Integration Response,API Gateway Integration Response,API,qa,Shared,"API Gateway Integration (OPTIONS), API Gateway Method Response",API Gateway Deployment,Medium,CloudWatch Metrics
+aws_api_gateway_deployment.onboarding,API Gateway Deployment,API Gateway Deployment,API,qa,Shared,"All API Gateway Resources (methods, integrations, responses)","API Gateway Stage",Critical,CloudWatch Metrics
+aws_api_gateway_stage.main,API Gateway Stage (qa),API Gateway Stage,API,qa,Shared,API Gateway Deployment,"API Gateway Method Settings",Critical,"CloudWatch Metrics, API Gateway Access Logs (if configured)"
+aws_api_gateway_method_settings.all,API Gateway Throttling & Metrics Settings,API Gateway Method Settings,API,qa,Shared,"API Gateway REST API, API Gateway Stage",None,High,CloudWatch Metrics
+aws_lambda_function.onboarding_handler,Onboarding Request Handler Lambda,Lambda Function,Compute,qa,Shared,"IAM Role (lambda_execution), Lambda Package (archive_file), CloudWatch Log Group","API Gateway Integration, DynamoDB Tables",Critical,"CloudWatch Logs, CloudWatch Metrics, X-Ray Tracing (PassThrough)"
+aws_cloudwatch_log_group.lambda_logs,Lambda Execution Logs,CloudWatch Log Group,Observability,qa,Shared,None,Lambda Function,Critical,"CloudWatch Logs, CloudWatch Insights"
+aws_lambda_permission.api_gateway,API Gateway Invoke Permission,Lambda Permission,Security,qa,Shared,"Lambda Function, API Gateway REST API",API Gateway Integration,Critical,CloudTrail
+aws_iam_role.lambda_execution,Lambda Execution IAM Role,IAM Role,Security,qa,Shared,None,"Lambda Function, IAM Role Policies",Critical,CloudTrail
+aws_iam_role_policy.lambda_logging,CloudWatch Logs Policy for Lambda,IAM Role Policy,Security,qa,Shared,IAM Role (lambda_execution),Lambda Function,High,CloudTrail
+aws_iam_role_policy.lambda_dynamodb,DynamoDB Access Policy for Lambda,IAM Role Policy,Security,qa,Shared,IAM Role (lambda_execution),Lambda Function,Critical,CloudTrail
+aws_iam_role_policy_attachment.lambda_basic_execution,AWSLambdaBasicExecutionRole Attachment,IAM Role Policy Attachment,Security,qa,Shared,IAM Role (lambda_execution),Lambda Function,Medium,CloudTrail
+aws_eip.bastion,Bastion Host Elastic IP,Elastic IP,Networking,qa,Shared,None,"EC2 Instance (bastion), API Gateway Resource Policy",High,CloudWatch Metrics
+aws_security_group.bastion,Bastion Host Security Group,Security Group,Networking,qa,Shared,"VPC (bastion), Network ACL (bastion)",EC2 Instance (bastion),Critical,CloudWatch Metrics
+aws_instance.bastion,Bastion Host EC2 Instance,EC2 Instance,Compute,qa,Shared,"VPC (bastion), Subnet (bastion_public), Security Group (bastion), Internet Gateway (bastion), Route Table (bastion), AMI (amazon_linux)","Elastic IP Association, API Gateway Resource Policy",High,"CloudWatch Metrics, CloudWatch Logs (if configured), Systems Manager Session Manager"
+aws_eip_association.bastion,Elastic IP to EC2 Association,Elastic IP Association,Networking,qa,Shared,"Elastic IP (bastion), EC2 Instance (bastion)",API Gateway Resource Policy,High,CloudWatch Metrics
+aws_vpc.bastion,Bastion Host VPC,VPC,Networking,qa,Shared,None,"Internet Gateway (bastion), Subnet (bastion_public), Route Table (bastion), Network ACL (bastion), Security Group (bastion)",High,CloudWatch Metrics
+aws_internet_gateway.bastion,Bastion Host Internet Gateway,Internet Gateway,Networking,qa,Shared,VPC (bastion),"Route Table (bastion), EC2 Instance (bastion)",High,CloudWatch Metrics
+aws_subnet.bastion_public,Bastion Host Public Subnet,Subnet,Networking,qa,Shared,"VPC (bastion), Route Table (bastion)","EC2 Instance (bastion), Route Table Association (bastion)",High,CloudWatch Metrics
+aws_route_table.bastion,Bastion Host Route Table,Route Table,Networking,qa,Shared,"VPC (bastion), Internet Gateway (bastion)","Route Table Association (bastion), EC2 Instance (bastion)",High,CloudWatch Metrics
+aws_route_table_association.bastion,Subnet to Route Table Association,Route Table Association,Networking,qa,Shared,"Subnet (bastion_public), Route Table (bastion)",EC2 Instance (bastion),High,CloudWatch Metrics
+aws_network_acl.bastion,Bastion Host Network ACL,Network ACL,Networking,qa,Shared,"VPC (bastion), Subnet (bastion_public)",EC2 Instance (bastion),Medium,CloudWatch Metrics
+data.aws_caller_identity.current,AWS Account Identity Data Source,Data Source,Infrastructure,qa,Shared,None,"All Resources (for ARN construction)",Low,N/A
+data.aws_region.current,AWS Region Data Source,Data Source,Infrastructure,qa,Shared,None,"All Resources (for region-specific configuration)",Low,N/A
+data.aws_dynamodb_table.client_metadata,Client Metadata Table Reference,Data Source,Database,qa,Shared,Existing DynamoDB Table,"Lambda Function (for table ARN)",High,N/A
+data.aws_dynamodb_table.pipeline_infos,Pipeline Infos Table Reference,Data Source,Database,qa,Shared,Existing DynamoDB Table,"Lambda Function (for table ARN)",High,N/A
+data.aws_ami.amazon_linux,Amazon Linux 2023 AMI Data Source,Data Source,Infrastructure,qa,Shared,None,EC2 Instance (bastion),Medium,N/A
+data.archive_file.lambda_zip,Lambda Deployment Package,Archive File,Infrastructure,qa,Shared,None,Lambda Function,Critical,N/A
+
