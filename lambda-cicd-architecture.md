@@ -1,0 +1,221 @@
+# Lambda CI/CD Pipeline Architecture
+
+## High-Level Architecture
+
+```mermaid
+flowchart TB
+    subgraph GitHub["GitHub Repository"]
+        Code["Lambda Code Changes"]
+        PR["Pull Request"]
+        Branches["Branches"]
+    end
+
+    subgraph Workflow["GitHub Actions Workflow"]
+        Trigger["Trigger Detection"]
+        Detect["Change Detection"]
+        Validate["Lambda Validation"]
+        Package["Package Lambda"]
+        Deploy["Deploy to AWS"]
+        Version["Publish Version"]
+    end
+
+    subgraph AWS["AWS Cloud (eu-west-1)"]
+        subgraph Envs["Environments"]
+            QA["QA Environment"]
+            STG["Staging Environment"]
+            PROD["Production Environment"]
+        end
+        
+        Lambda["Lambda Functions"]
+        IAM["IAM Roles"]
+        S3["S3 Buckets"]
+        DynamoDB["DynamoDB Tables"]
+    end
+
+    Code --> PR --> Branches
+    Branches --> Trigger
+    Trigger --> Detect
+    Detect --> Validate
+    Validate --> Package
+    Package --> Deploy
+    Deploy --> Version
+    Deploy --> Lambda
+    Lambda --> IAM
+    Lambda --> S3
+    Lambda --> DynamoDB
+```
+
+---
+
+## CI/CD Workflow Stages
+
+```mermaid
+flowchart LR
+    subgraph Stage1["Stage 1: Detection"]
+        A1["PR Merged / Push"]
+        A2["Detect Changed Files"]
+        A3["Identify Lambda Folders"]
+    end
+
+    subgraph Stage2["Stage 2: Validation"]
+        B1["Check AWS for Existing Lambdas"]
+        B2["Classify: New vs Update"]
+        B3["Read config.json"]
+    end
+
+    subgraph Stage3["Stage 3: Deployment"]
+        C1["Install Dependencies"]
+        C2["Create ZIP Package"]
+        C3["Create/Update Lambda"]
+        C4["Configure Environment Vars"]
+    end
+
+    subgraph Stage4["Stage 4: Versioning"]
+        D1["Publish New Version"]
+        D2["Add Metadata Tags"]
+        D3["Log Deployment"]
+    end
+
+    A1 --> A2 --> A3
+    A3 --> B1 --> B2 --> B3
+    B3 --> C1 --> C2 --> C3 --> C4
+    C4 --> D1 --> D2 --> D3
+```
+
+---
+
+## Branch-to-Environment Mapping
+
+```mermaid
+flowchart TD
+    subgraph Branches["Git Branches"]
+        INT["integration"]
+        STG["staging"]
+        MAIN["main"]
+        CICD["lambda-CICD"]
+    end
+
+    subgraph Mapping["Environment Suffix"]
+        QA_S["-qa"]
+        STG_S["-stg"]
+        PROD_S["-prod"]
+        CICD_S["-lambda-cicd"]
+    end
+
+    subgraph IAMRoles["IAM Execution Roles"]
+        QA_R["mmm_Dev_lambda_exec"]
+        STG_R["mmm_stg_lambda_exec"]
+        PROD_R["mmm_prod_lambda_exec"]
+        CICD_R["mmm_lambda-cicd_lambda_exec"]
+    end
+
+    INT --> QA_S --> QA_R
+    STG --> STG_S --> STG_R
+    MAIN --> PROD_S --> PROD_R
+    CICD --> CICD_S --> CICD_R
+```
+
+---
+
+## Lambda Functions Architecture
+
+```mermaid
+flowchart TB
+    subgraph DataIngestion["Data Ingestion Pipeline"]
+        L1["data_ingestion_slack"]
+        L2["mmm_dev_data_transfer"]
+        L3["mmm_dev_get_client"]
+        L4["stale_data_check"]
+    end
+
+    subgraph Onboarding["Onboarding Pipeline"]
+        L5["onboarding_handler"]
+    end
+
+    subgraph AWSServices["AWS Services"]
+        Slack["Slack Webhook"]
+        S3_T["Tracer S3 Bucket"]
+        S3_V["VIP Client Buckets"]
+        DDB_P["DynamoDB: pipeline-infos"]
+        DDB_C["DynamoDB: client-metadata"]
+        DDB_L["DynamoDB: transfer-logs"]
+    end
+
+    L1 --> Slack
+    L2 --> S3_T
+    L2 --> S3_V
+    L2 --> DDB_L
+    L2 --> DDB_P
+    L3 --> DDB_P
+    L3 --> DDB_C
+    L4 --> DDB_P
+    L5 --> DDB_C
+    L5 --> DDB_P
+```
+
+---
+
+## Deployment Flow Detail
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub
+    participant GA as GitHub Actions
+    participant AWS as AWS Lambda
+
+    Dev->>GH: Push/Merge PR
+    GH->>GA: Trigger Workflow
+    
+    GA->>GA: Detect Changed Lambdas
+    GA->>AWS: Check Lambda Exists?
+    
+    alt Lambda Exists
+        GA->>GA: Package Code
+        GA->>AWS: update-function-code
+        GA->>AWS: update-function-configuration
+    else New Lambda
+        GA->>AWS: Create IAM Role (if needed)
+        GA->>GA: Package Code
+        GA->>AWS: create-function
+    end
+    
+    GA->>AWS: publish-version
+    AWS-->>GA: Version ARN + Metadata
+    GA-->>GH: Deployment Complete
+```
+
+---
+
+## Repository Structure
+
+```
+MikGorilla.AI/
+├── .github/
+│   └── workflows/
+│       └── deploy-lambda.yaml      ← CI/CD Pipeline
+│
+├── data_ingestion_pipeline/
+│   └── lambdas/
+│       ├── data_ingestion_slack/
+│       │   ├── lambda_function.py
+│       │   ├── config.json         ← NEW
+│       │   └── requirements.txt
+│       ├── mmm_dev_data_transfer/
+│       │   ├── lambda_function.py
+│       │   ├── config.json         ← NEW
+│       │   └── requirements.txt
+│       ├── mmm_dev_get_client/
+│       │   ├── lambda_function.py
+│       │   ├── config.json         ← NEW
+│       │   └── requirements.txt
+│       └── stale_data_check/
+│           ├── lambda_function.py
+│           └── config.json         ← NEW
+│
+└── onboarding_pipeline/
+    └── lambda/
+        ├── lambda_function.py
+        ├── config.json             ← NEW
+        └── requirements.txt
+```
